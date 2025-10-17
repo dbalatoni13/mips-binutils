@@ -13,8 +13,8 @@ RUN mkdir /zig && \
 ENV PATH="/zig:$PATH"
 
 # Download binutils
-ARG BINUTILS_VERSION=2.42
-RUN wget -q https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz
+ARG BINUTILS_VERSION=2.45
+RUN wget -q https://mirror.netcologne.de/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz
 
 # Build host binutils
 ARG GNU_TRIPLE
@@ -33,7 +33,7 @@ RUN mkdir /binutils && \
     tar -xf /binutils-${BINUTILS_VERSION}.tar.xz -C /binutils --strip-components=1 && \
     cd /binutils && for patch in ../*.patch; do patch -N -p1 -i $patch; done && \
     CC="zig cc -target ${ZIG_TRIPLE}" \
-    ./configure --host=${GNU_TRIPLE} --target=powerpc-eabi --prefix=/target \
+    ./configure --host=${GNU_TRIPLE} --target=mips-linux-gnu --prefix=/target \
     --disable-nls --disable-shared --disable-gprof --without-zstd && \
     make -j$(nproc) && \
     make install-strip
