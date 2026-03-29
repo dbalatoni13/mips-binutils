@@ -19,8 +19,13 @@ REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 : "${BISONFLAGS:=}"
 
 exeext=
+build_collect2=true
 case "${HOST_TRIPLE:-$(uname -s)}" in
-  *mingw*|*MINGW*|*msys*|*MSYS*|*cygwin*|*CYGWIN*)
+  *mingw*|*MINGW*|*msys*|*MSYS*)
+    exeext=.exe
+    build_collect2=false
+    ;;
+  *cygwin*|*CYGWIN*)
     exeext=.exe
     ;;
 esac
@@ -101,10 +106,13 @@ build_targets=(
   "cpp${exeext}"
   gcc-cross
   "g++-cross${exeext}"
-  "collect2${exeext}"
   "c++filt${exeext}"
   specs
 )
+
+if [[ "${build_collect2}" == true ]]; then
+  build_targets+=("collect2${exeext}")
+fi
 
 "$MAKE" -j"$MAKE_JOBS" \
   CC="$CC" \
@@ -137,9 +145,12 @@ for compiler in cc1 cc1plus cpp; do
   install -m 755 "${compiler}${exeext}" "${libsubdir}/${compiler}${exeext}"
 done
 
+if [[ -f "xgcc${exeext}" ]]; then
+  install -m 755 "xgcc${exeext}" "${libsubdir}/gcc${exeext}"
+fi
+
 if [[ -f "collect2${exeext}" ]]; then
   install -m 755 "collect2${exeext}" "${libsubdir}/collect2${exeext}"
-  install -m 755 "xgcc${exeext}" "${libsubdir}/gcc${exeext}"
 fi
 
 if [[ -f "c++filt${exeext}" ]]; then
