@@ -6,7 +6,8 @@ REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 
 : "${PREFIX:=${REPO_ROOT}/build}"
 : "${WORKDIR:=${REPO_ROOT}/work}"
-: "${TARGET_TRIPLE:=powerpc-eabi}"
+: "${CONFIG_TARGET_TRIPLE:=powerpc-eabi}"
+: "${TARGET_TRIPLE:=Dolphin}"
 : "${CC:=cc}"
 : "${CXX:=c++}"
 : "${BUILD_CC:=cc}"
@@ -75,7 +76,7 @@ env \
 cd "${SOURCE_ROOT}/gcc"
 
 configure_args=(
-  --target="$TARGET_TRIPLE"
+  --target="$CONFIG_TARGET_TRIPLE"
   --prefix="$PREFIX"
   --disable-nls
   --enable-languages=c,c++
@@ -119,6 +120,7 @@ fi
   CXX="$CXX" \
   BUILD_CC="$BUILD_CC" \
   BUILD_CXX="$BUILD_CXX" \
+  target_alias="$TARGET_TRIPLE" \
   BISON="$BISON" \
   BISONFLAGS="$BISONFLAGS" \
   CFLAGS="$CFLAGS" \
