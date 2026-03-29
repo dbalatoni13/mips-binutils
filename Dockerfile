@@ -1,11 +1,12 @@
-ARG ALPINE_VERSION=3.20.6
-FROM alpine:${ALPINE_VERSION} AS build
+ARG DEBIAN_VERSION=bullseye-slim
+FROM debian:${DEBIAN_VERSION} AS build
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     bison \
     binutils \
-    build-base \
+    build-essential \
+    ca-certificates \
     curl \
     flex \
     gperf \
@@ -13,7 +14,8 @@ RUN apk add --no-cache \
     perl \
     python3 \
     unzip \
-    xz
+    xz-utils \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 COPY . .
