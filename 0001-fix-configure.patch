@@ -1,0 +1,47 @@
+--- a/gcc/configure
++++ b/gcc/configure
+@@ -2941,6 +2941,8 @@
+ 	powerpc*-*-*)
+ 		cpu_type=rs6000
+ 		;;
++	x86_64-*-*) cpu_type=i386 ;;
++	aarch64-*-*) cpu_type=arm ;;
+ 	pyramid-*-*)
+ 		cpu_type=pyr
+ 		;;
+@@ -2954,7 +2956,7 @@
+ 	
+ 	# Common parts for linux-gnu and openbsd systems
+ 	case $machine in
+-	*-*-linux-gnu*)
++	*-*-linux*)
+ 		xm_defines="HAVE_ATEXIT POSIX BSTRING"
+ 		;;
+ 	*-*-openbsd*)
+@@ -5591,6 +5593,17 @@
+ 		xm_file="${xm_file} xm-svr3"
+ 		use_collect2=yes
+ 		;;
++	x86_64-*-linux*)
++		xm_file=i386/xm-linux.h
++		;;
++	aarch64-*-linux* | arm*-*-linux*)
++		xm_file=arm/xm-linux.h
++		;;
++	x86_64-*-darwin* | aarch64-*-darwin*)
++		;;
++	x86_64-*-mingw* | x86_64-*-cygwin* | x86_64-*-msys*)
++		exeext=.exe
++		;;
+ 	*)
+ 		echo "Configuration $machine not supported" 1>&2
+ 		exit 1
+@@ -6019,7 +6032,7 @@
+ else
+ 	gcc_version_trigger=${srcdir}/version.c
+ fi
+-gcc_version=`sed -e 's/.*\"\([^ \"]*\)[ \"].*/\1/' < ${gcc_version_trigger}`
++gcc_version=`grep 'version_string' ${gcc_version_trigger} | sed -e 's/.*\"\([^ \"]*\)[ \"].*/\1/'`
+ 
+ # Internationalization
+ PACKAGE=gcc

@@ -1,9 +1,17 @@
-#!/bin/bash -ex
-PREFIX="$(pwd)/build"
-mkdir source
-wget -qO- https://mirror.netcologne.de/gnu/binutils/binutils-2.45.tar.xz | tar -xJ -C source --strip-components=1
-cd source
-./configure --target=mips-linux-gnu --prefix="$PREFIX" --disable-nls --disable-gprof --without-zstd
-make -j$(nproc) configure-host
-make -j$(nproc)
-make install-strip
+#!/usr/bin/env bash
+set -euo pipefail
+
+PREFIX="${PREFIX:-$(pwd)/build}"
+WORKDIR="${WORKDIR:-$(pwd)/work}"
+
+export PREFIX
+export WORKDIR
+export HOST_TRIPLE="${HOST_TRIPLE:-x86_64-w64-mingw32}"
+export CC="${CC:-clang}"
+export CXX="${CXX:-clang++}"
+export BUILD_CC="${BUILD_CC:-clang}"
+export BUILD_CXX="${BUILD_CXX:-clang++}"
+export CFLAGS="${CFLAGS:--std=gnu89 -w}"
+export CXXFLAGS="${CXXFLAGS:--std=gnu++98 -w}"
+
+./scripts/build-prodg.sh

@@ -1,13 +1,16 @@
-#!/bin/bash -ex
-PREFIX="$(pwd)/build"
-mkdir source
-wget -qO- https://mirror.netcologne.de/gnu/binutils/binutils-2.45.tar.xz | tar -xJ -C source --strip-components=1
-cd source
-for patch in ../*.patch; do
-  patch -N -p1 -i "$patch"
-done
-export CFLAGS="-arch arm64 -arch x86_64 -mmacosx-version-min=10.11"
-./configure --target=mips-linux-gnu --prefix="$PREFIX" --disable-nls --disable-gprof --without-zstd
-make -j$(nproc) configure-host
-make -j$(nproc)
-make install-strip
+#!/usr/bin/env bash
+set -euo pipefail
+
+PREFIX="${PREFIX:-$(pwd)/build}"
+WORKDIR="${WORKDIR:-$(pwd)/work}"
+
+export PREFIX
+export WORKDIR
+export CC="${CC:-clang}"
+export CXX="${CXX:-clang++}"
+export BUILD_CC="${BUILD_CC:-clang}"
+export BUILD_CXX="${BUILD_CXX:-clang++}"
+export CFLAGS="${CFLAGS:--arch arm64 -arch x86_64 -mmacosx-version-min=10.13 -std=gnu89 -w}"
+export CXXFLAGS="${CXXFLAGS:--arch arm64 -arch x86_64 -mmacosx-version-min=10.13 -std=gnu++98 -w}"
+
+./scripts/build-prodg.sh
