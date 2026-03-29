@@ -95,6 +95,17 @@ env \
   LDFLAGS="$LDFLAGS" \
   ./configure "${configure_args[@]}"
 
+build_targets=(
+  "cc1${exeext}"
+  "cc1plus${exeext}"
+  "cpp${exeext}"
+  gcc-cross
+  "g++-cross${exeext}"
+  "collect2${exeext}"
+  "c++filt${exeext}"
+  specs
+)
+
 "$MAKE" -j"$MAKE_JOBS" \
   CC="$CC" \
   CXX="$CXX" \
@@ -105,7 +116,7 @@ env \
   CFLAGS="$CFLAGS" \
   CXXFLAGS="$CXXFLAGS" \
   LDFLAGS="$LDFLAGS" \
-  "cc1${exeext}" "cc1plus${exeext}" "cpp${exeext}" "gcc-cross${exeext}" "g++-cross${exeext}" "collect2${exeext}" "c++filt${exeext}" specs
+  "${build_targets[@]}"
 
 bindir="${PREFIX}/bin"
 libsubdir="${PREFIX}/lib/gcc-lib/${TARGET_TRIPLE}"
