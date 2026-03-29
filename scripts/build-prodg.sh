@@ -18,6 +18,13 @@ REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 : "${BISON:=bison}"
 : "${BISONFLAGS:=}"
 
+exeext=
+case "${HOST_TRIPLE:-$(uname -s)}" in
+  *mingw*|*MINGW*|*msys*|*MSYS*|*cygwin*|*CYGWIN*)
+    exeext=.exe
+    ;;
+esac
+
 if command -v nproc >/dev/null 2>&1; then
   MAKE_JOBS=${MAKE_JOBS:-$(nproc)}
 elif command -v getconf >/dev/null 2>&1; then
@@ -98,7 +105,7 @@ env \
   CFLAGS="$CFLAGS" \
   CXXFLAGS="$CXXFLAGS" \
   LDFLAGS="$LDFLAGS" \
-  cc1 cc1plus cpp gcc-cross g++-cross collect2 c++filt specs
+  "cc1${exeext}" "cc1plus${exeext}" "cpp${exeext}" "gcc-cross${exeext}" "g++-cross${exeext}" "collect2${exeext}" "c++filt${exeext}" specs
 
 bindir="${PREFIX}/bin"
 libsubdir="${PREFIX}/lib/gcc-lib/${TARGET_TRIPLE}"
@@ -106,22 +113,26 @@ toolbindir="${PREFIX}/${TARGET_TRIPLE}/bin"
 
 mkdir -p "$bindir" "$libsubdir" "$toolbindir"
 
-install -m 755 gcc-cross "${bindir}/${TARGET_TRIPLE}-gcc"
-install -m 755 gcc-cross "${toolbindir}/gcc"
-install -m 755 g++-cross "${bindir}/${TARGET_TRIPLE}-g++"
-ln -sf "${TARGET_TRIPLE}-g++" "${bindir}/${TARGET_TRIPLE}-c++"
-
-for compiler in cc1 cc1plus cpp; do
-  install -m 755 "${compiler}" "${libsubdir}/${compiler}"
-done
-
-if [[ -f collect2 ]]; then
-  install -m 755 collect2 "${libsubdir}/collect2"
-  install -m 755 xgcc "${libsubdir}/gcc"
+install -m 755 "gcc-cross${exeext}" "${bindir}/${TARGET_TRIPLE}-gcc${exeext}"
+install -m 755 "gcc-cross${exeext}" "${toolbindir}/gcc${exeext}"
+install -m 755 "g++-cross${exeext}" "${bindir}/${TARGET_TRIPLE}-g++${exeext}"
+if [[ -n "${exeext}" ]]; then
+  install -m 755 "g++-cross${exeext}" "${bindir}/${TARGET_TRIPLE}-c++${exeext}"
+else
+  ln -sf "${TARGET_TRIPLE}-g++" "${bindir}/${TARGET_TRIPLE}-c++"
 fi
 
-if [[ -f c++filt ]]; then
-  install -m 755 c++filt "${bindir}/${TARGET_TRIPLE}-c++filt"
+for compiler in cc1 cc1plus cpp; do
+  install -m 755 "${compiler}${exeext}" "${libsubdir}/${compiler}${exeext}"
+done
+
+if [[ -f "collect2${exeext}" ]]; then
+  install -m 755 "collect2${exeext}" "${libsubdir}/collect2${exeext}"
+  install -m 755 "xgcc${exeext}" "${libsubdir}/gcc${exeext}"
+fi
+
+if [[ -f "c++filt${exeext}" ]]; then
+  install -m 755 "c++filt${exeext}" "${bindir}/${TARGET_TRIPLE}-c++filt${exeext}"
 fi
 
 install -m 644 specs "${libsubdir}/specs"

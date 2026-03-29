@@ -11,7 +11,7 @@ export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export BUILD_CC="${BUILD_CC:-clang}"
 export BUILD_CXX="${BUILD_CXX:-clang++}"
-export CFLAGS="${CFLAGS:--std=gnu89 -w}"
-export CXXFLAGS="${CXXFLAGS:--std=gnu++98 -w}"
+export CFLAGS="${CFLAGS:--std=gnu89 -w -fcommon}"
+export CXXFLAGS="${CXXFLAGS:--std=gnu++98 -w -fcommon}"
 
 ./scripts/build-prodg.sh
