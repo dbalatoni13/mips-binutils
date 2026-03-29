@@ -10,35 +10,16 @@ on:
 jobs:
   build-linux:
     name: Build Linux
-    strategy:
-      matrix:
-        include:
-          - name: x86_64
-            gnu: x86_64-linux-musl
-            zig: x86_64-linux-musl
-          - name: i686
-            gnu: i686-linux-musl
-            zig: x86-linux-musl
-          - name: armv7l
-            gnu: arm-linux-musleabihf
-            zig: arm-linux-musleabihf
-          - name: aarch64
-            gnu: aarch64-linux-musl
-            zig: aarch64-linux-musl
-      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        run: >
-          docker build --target export --output build . 
-          --build-arg GNU_TRIPLE=${{ matrix.gnu }}
-          --build-arg ZIG_TRIPLE=${{ matrix.zig }}
+        run: docker build --target export --output build .
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-${{ matrix.name }}
+          name: linux-x86_64
           path: build
 
   build-macos:
@@ -76,7 +57,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.sys }}
-          install: bison curl flex gperf make patch perl python unzip
+          install: bison curl diffutils flex gawk gperf make patch perl python unzip
           pacboy: clang:p
       - name: Build
         shell: msys2 {0}

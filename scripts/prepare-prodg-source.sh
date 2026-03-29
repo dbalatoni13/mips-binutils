@@ -53,6 +53,9 @@ chmod +x "${SOURCE_ROOT}/libiberty/configure"
 find "${SOURCE_ROOT}/gcc" -type f \( -name '*.sh' -o -name 'move-if-change' -o -name 'gen*' -o -name 'mk*' \) -exec chmod +x {} +
 find "${SOURCE_ROOT}/libiberty" -type f \( -name '*.sh' -o -name 'configure*' -o -name 'gen*' -o -name 'mk*' \) -exec chmod +x {} +
 
+cp "${SOURCE_ROOT}/gcc/move-if-change" "${SOURCE_ROOT}/move-if-change"
+chmod +x "${SOURCE_ROOT}/move-if-change"
+
 cat > "${SOURCE_ROOT}/config.if" <<'EOF'
 libstdcxx_interface=3
 EOF
