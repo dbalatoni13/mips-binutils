@@ -1,0 +1,28 @@
+diff --git a/gcc/getpwd.c b/gcc/getpwd.c
+index 61c310d..c6136ee 100644
+--- a/gcc/getpwd.c
++++ b/gcc/getpwd.c
+@@ -28,7 +28,8 @@
+    BSD systems) now provides getcwd as called for by POSIX.  Allow for
+    the few exceptions to the general rule here.  */
+ 
+-#if !(defined (POSIX) || defined (USG) || defined (VMS)) || defined (HAVE_GETWD)
++#if (!(defined (POSIX) || defined (USG) || defined (VMS)) \
++     && !(defined (_WIN32) && !defined (__CYGWIN__))) || defined (HAVE_GETWD)
+ #define getcwd(buf,len) getwd(buf)
+ #ifdef MAXPATHLEN
+ #define GUESSPATHLEN (MAXPATHLEN + 1)
+diff --git a/gcc/ch/gcc/getpwd.c b/gcc/ch/gcc/getpwd.c
+index 61c310d..c6136ee 100644
+--- a/gcc/ch/gcc/getpwd.c
++++ b/gcc/ch/gcc/getpwd.c
+@@ -28,7 +28,8 @@
+    BSD systems) now provides getcwd as called for by POSIX.  Allow for
+    the few exceptions to the general rule here.  */
+ 
+-#if !(defined (POSIX) || defined (USG) || defined (VMS)) || defined (HAVE_GETWD)
++#if (!(defined (POSIX) || defined (USG) || defined (VMS)) \
++     && !(defined (_WIN32) && !defined (__CYGWIN__))) || defined (HAVE_GETWD)
+ #define getcwd(buf,len) getwd(buf)
+ #ifdef MAXPATHLEN
+ #define GUESSPATHLEN (MAXPATHLEN + 1)
