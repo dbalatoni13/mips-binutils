@@ -1,0 +1,13 @@
+--- a/gcc/cccp.c
++++ b/gcc/cccp.c
+@@ -102,10 +102,8 @@
+ // SN-Phil: japanese support
+ extern int host_is_japanese () ;
+ 
+-#undef __STDC__
+ #include "config.h"
+ 
+-#undef __STDC__
+ #include "system.h"
+ 
+ #include <signal.h>

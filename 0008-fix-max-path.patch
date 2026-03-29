@@ -1,0 +1,10 @@
+--- a/gcc/toplev.c
++++ b/gcc/toplev.c
+@@ -5042,7 +5042,7 @@
+   progname = p;
+ 
+ //Dave - need these for devstudio errors
+- filename_check = malloc ( _MAX_PATH );
++ filename_check = malloc ( 4096 );
+  linenumber_check = 0;
+ //end Dave

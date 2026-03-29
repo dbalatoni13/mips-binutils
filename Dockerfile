@@ -3,9 +3,12 @@ FROM alpine:${ALPINE_VERSION} AS build
 
 RUN apk add --no-cache \
     bash \
+    bison \
     binutils \
     build-base \
     curl \
+    flex \
+    gperf \
     patch \
     perl \
     python3 \

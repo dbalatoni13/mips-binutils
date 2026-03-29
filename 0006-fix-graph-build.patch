@@ -1,0 +1,11 @@
+--- a/gcc/graph.c
++++ b/gcc/graph.c
+@@ -366,7 +366,7 @@
+ 	      bb = BASIC_BLOCK (i);
+ 
+ 	      /* End of the basic block.  */
+-	      end_bb (fp, bb);
++	      end_bb (fp, i);
+ 
+ 	      /* Now specify the edges to all the successors of this
+ 		 basic block.  */

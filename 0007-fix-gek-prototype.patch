@@ -1,0 +1,10 @@
+--- a/gcc/config/rs6000/rs6000.h
++++ b/gcc/config/rs6000/rs6000.h
+@@ -3613,6 +3613,7 @@
+ /* Initialize the target-specific builtin functions.  Only do something
+    if TARGET_PS_FLOAT is nonzero */
+ 
++extern struct rtx_def *gek_expand_builtin ();
+ extern void gek_init_builtins (void);
+ 
+ #define MD_INIT_BUILTINS      \

@@ -1,0 +1,10 @@
+--- a/gcc/config/rs6000/sysv4.h
++++ b/gcc/config/rs6000/sysv4.h
+@@ -571,7 +571,7 @@
+ /* Width of wchar_t in bits.  */
+ // SN-Phil: short wchar mod
+ #undef WCHAR_TYPE_SIZE
+-#define WCHAR_TYPE_SIZE TYPE_PRECISION (wchar_type_node)
++#define WCHAR_TYPE_SIZE 32
+ 
+ /* Make int foo : 8 not cause structures to be aligned to an int boundary */

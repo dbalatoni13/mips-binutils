@@ -1,0 +1,11 @@
+--- a/gcc/config/rs6000/rs6000.c
++++ b/gcc/config/rs6000/rs6000.c
+@@ -228,6 +228,8 @@
+ #include "function.h"
+ #include "output.h"
+ #include "toplev.h"
++
++extern rtx expand_expr PROTO((tree, rtx, enum machine_mode, enum expand_modifier));
+ 
+ #ifndef TARGET_NO_PROTOTYPE
+ #define TARGET_NO_PROTOTYPE 0

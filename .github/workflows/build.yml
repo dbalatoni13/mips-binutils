@@ -47,6 +47,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          brew install bison gperf
+          echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
       - name: Build
         run: ./build-macos.sh
       - name: Upload artifacts
@@ -72,7 +76,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.sys }}
-          install: curl make patch perl python unzip
+          install: bison curl flex gperf make patch perl python unzip
           pacboy: clang:p
       - name: Build
         shell: msys2 {0}

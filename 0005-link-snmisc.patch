@@ -1,0 +1,34 @@
+--- a/gcc/Makefile.in
++++ b/gcc/Makefile.in
+@@ -382,7 +382,7 @@
+ 
+ # List of extra object files that should be compiled and linked with
+ # compiler proper (cc1, cc1obj, cc1plus).
+-EXTRA_OBJS = @extra_objs@
++EXTRA_OBJS = SNMisc.o @extra_objs@
+ 
+ # List of extra object files that should be compiled and linked with
+ # the gcc driver.
+@@ -1956,7 +1956,7 @@
+ cpp$(exeext): $(CCCP)$(exeext)
+ 	-rm -f cpp$(exeext)
+ 	$(LN) $(CCCP)$(exeext) cpp$(exeext)
+-CCCP_OBJS = cccp.o cexp.o intl.o prefix.o version.o @extra_cpp_objs@ mbchar.o 
++CCCP_OBJS = cccp.o cexp.o intl.o prefix.o version.o @extra_cpp_objs@ SNMisc.o mbchar.o
+ cccp$(exeext): $(CCCP_OBJS) $(LIBDEPS)
+ 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(CCCP_OBJS) $(LIBS)
+ cexp.o: $(srcdir)/cexp.c $(CONFIG_H) system.h
+--- a/gcc/cccp.c
++++ b/gcc/cccp.c
+@@ -10252,9 +10252,8 @@
+ {
+ 	//SN-Dave: SN VERSION
+ 	//Convert version info to char*
+-	char* vers;
+-	vers = (char*)malloc(8);
+-	_itoa( sn_num_version, vers, 10 ); //write to vers as base10
++	char vers[16];
++	sprintf(vers, "%d", sn_num_version);
+ 
+   install ((U_CHAR *) "__LINE__", -1, T_SPECLINE, NULL_PTR, -1);
+   install ((U_CHAR *) "__DATE__", -1, T_DATE, NULL_PTR, -1);

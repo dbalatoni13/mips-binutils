@@ -11,10 +11,12 @@ REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 : "${CXX:=c++}"
 : "${BUILD_CC:=cc}"
 : "${BUILD_CXX:=c++}"
-: "${CFLAGS:=-std=gnu89 -w}"
-: "${CXXFLAGS:=-std=gnu++98 -w}"
+: "${CFLAGS:=-std=gnu89 -w -fcommon}"
+: "${CXXFLAGS:=-std=gnu++98 -w -fcommon}"
 : "${LDFLAGS:=}"
 : "${MAKE:=make}"
+: "${BISON:=bison}"
+: "${BISONFLAGS:=}"
 
 if command -v nproc >/dev/null 2>&1; then
   MAKE_JOBS=${MAKE_JOBS:-$(nproc)}
@@ -29,11 +31,36 @@ fi
 "${SCRIPT_DIR}/prepare-prodg-source.sh" "${WORKDIR}/source" "${WORKDIR}/downloads" >/dev/null
 
 SOURCE_ROOT="${WORKDIR}/source/NGC_GNU_SRC/NGC"
-BUILD_ROOT="${WORKDIR}/build"
 
-rm -rf "$BUILD_ROOT" "$PREFIX"
-mkdir -p "$BUILD_ROOT" "$PREFIX"
-cd "$BUILD_ROOT"
+rm -rf "$PREFIX"
+mkdir -p "$PREFIX"
+
+libiberty_args=(
+  --prefix="$PREFIX"
+)
+
+if [[ -n "${HOST_TRIPLE:-}" ]]; then
+  libiberty_args+=(--host="$HOST_TRIPLE")
+fi
+
+if [[ -n "${BUILD_TRIPLE:-}" ]]; then
+  libiberty_args+=(--build="$BUILD_TRIPLE")
+fi
+
+cd "${SOURCE_ROOT}/libiberty"
+env \
+  CC="$CC" \
+  CFLAGS="$CFLAGS" \
+  LDFLAGS="$LDFLAGS" \
+  ./configure "${libiberty_args[@]}"
+
+"$MAKE" -j"$MAKE_JOBS" \
+  CC="$CC" \
+  CFLAGS="$CFLAGS" \
+  LDFLAGS="$LDFLAGS" \
+  libiberty.a
+
+cd "${SOURCE_ROOT}/gcc"
 
 configure_args=(
   --target="$TARGET_TRIPLE"
@@ -59,24 +86,42 @@ env \
   CFLAGS="$CFLAGS" \
   CXXFLAGS="$CXXFLAGS" \
   LDFLAGS="$LDFLAGS" \
-  "${SOURCE_ROOT}/gcc/configure" "${configure_args[@]}"
+  ./configure "${configure_args[@]}"
 
 "$MAKE" -j"$MAKE_JOBS" \
   CC="$CC" \
   CXX="$CXX" \
   BUILD_CC="$BUILD_CC" \
   BUILD_CXX="$BUILD_CXX" \
+  BISON="$BISON" \
+  BISONFLAGS="$BISONFLAGS" \
   CFLAGS="$CFLAGS" \
   CXXFLAGS="$CXXFLAGS" \
   LDFLAGS="$LDFLAGS" \
-  native gcc-cross specs stmp-headers
+  cc1 cc1plus cpp gcc-cross g++-cross collect2 c++filt specs
 
-"$MAKE" \
-  CC="$CC" \
-  CXX="$CXX" \
-  BUILD_CC="$BUILD_CC" \
-  BUILD_CXX="$BUILD_CXX" \
-  CFLAGS="$CFLAGS" \
-  CXXFLAGS="$CXXFLAGS" \
-  LDFLAGS="$LDFLAGS" \
-  install-headers install-common install-driver
+bindir="${PREFIX}/bin"
+libsubdir="${PREFIX}/lib/gcc-lib/${TARGET_TRIPLE}"
+toolbindir="${PREFIX}/${TARGET_TRIPLE}/bin"
+
+mkdir -p "$bindir" "$libsubdir" "$toolbindir"
+
+install -m 755 gcc-cross "${bindir}/${TARGET_TRIPLE}-gcc"
+install -m 755 gcc-cross "${toolbindir}/gcc"
+install -m 755 g++-cross "${bindir}/${TARGET_TRIPLE}-g++"
+ln -sf "${TARGET_TRIPLE}-g++" "${bindir}/${TARGET_TRIPLE}-c++"
+
+for compiler in cc1 cc1plus cpp; do
+  install -m 755 "${compiler}" "${libsubdir}/${compiler}"
+done
+
+if [[ -f collect2 ]]; then
+  install -m 755 collect2 "${libsubdir}/collect2"
+  install -m 755 xgcc "${libsubdir}/gcc"
+fi
+
+if [[ -f c++filt ]]; then
+  install -m 755 c++filt "${bindir}/${TARGET_TRIPLE}-c++filt"
+fi
+
+install -m 644 specs "${libsubdir}/specs"

@@ -49,12 +49,16 @@ download_file "$PRODG_CONFIG_SUB_URL" "${SOURCE_ROOT}/config.sub"
 download_file "$PRODG_INSTALL_SH_URL" "${SOURCE_ROOT}/install-sh"
 chmod +x "${SOURCE_ROOT}/config.guess" "${SOURCE_ROOT}/config.sub" "${SOURCE_ROOT}/install-sh"
 chmod +x "${SOURCE_ROOT}/gcc/configure"
+chmod +x "${SOURCE_ROOT}/libiberty/configure"
+find "${SOURCE_ROOT}/gcc" -type f \( -name '*.sh' -o -name 'move-if-change' -o -name 'gen*' -o -name 'mk*' \) -exec chmod +x {} +
+find "${SOURCE_ROOT}/libiberty" -type f \( -name '*.sh' -o -name 'configure*' -o -name 'gen*' -o -name 'mk*' \) -exec chmod +x {} +
 
 cat > "${SOURCE_ROOT}/config.if" <<'EOF'
 libstdcxx_interface=3
 EOF
 
 mkdir -p "${SOURCE_ROOT}/gcc/intl" "${SOURCE_ROOT}/gcc/po" "${SOURCE_ROOT}/gcc/fixinc"
+mkdir -p "${SOURCE_ROOT}/gcc/ginclude" "${SOURCE_ROOT}/gcc/cp"
 
 cat > "${SOURCE_ROOT}/gcc/intl/libgettext.h" <<'EOF'
 #ifndef GCC_LIBGETTEXT_H
@@ -63,11 +67,59 @@ cat > "${SOURCE_ROOT}/gcc/intl/libgettext.h" <<'EOF'
 #endif
 EOF
 
-: > "${SOURCE_ROOT}/gcc/intl/Makefile.in"
+cat > "${SOURCE_ROOT}/gcc/intl/Makefile.in" <<'EOF'
+all install uninstall distdir mostlyclean clean distclean maintainer-clean:
+	@true
+EOF
+
 : > "${SOURCE_ROOT}/gcc/intl/po2tbl.sed.in"
-: > "${SOURCE_ROOT}/gcc/po/Makefile.in.in"
+
+cat > "${SOURCE_ROOT}/gcc/po/Makefile.in.in" <<'EOF'
+all install uninstall distdir mostlyclean clean distclean maintainer-clean:
+	@true
+EOF
+
 : > "${SOURCE_ROOT}/gcc/po/POTFILES.in"
-: > "${SOURCE_ROOT}/gcc/fixinc/Makefile.in"
+
+cat > "${SOURCE_ROOT}/gcc/fixinc/Makefile.in" <<'EOF'
+all install uninstall distdir mostlyclean clean distclean maintainer-clean:
+	@true
+EOF
+
+cat > "${SOURCE_ROOT}/gcc/fixinc/mkfixinc.sh" <<'EOF'
+#!/usr/bin/env sh
+cat > ../fixinc.sh <<'INNER'
+#!/usr/bin/env sh
+exit 0
+INNER
+chmod +x ../fixinc.sh
+EOF
+chmod +x "${SOURCE_ROOT}/gcc/fixinc/mkfixinc.sh"
+
+for fixinc_file in fixincl.c procopen.c gnu-regex.c server.c gnu-regex.h server.h inclhack.def; do
+  : > "${SOURCE_ROOT}/gcc/fixinc/${fixinc_file}"
+done
+
+for ginclude_header in \
+  stdarg.h stddef.h varargs.h va-alpha.h va-h8300.h va-i860.h va-i960.h \
+  va-mips.h va-m88k.h va-mn10200.h va-mn10300.h va-pa.h va-pyr.h va-sparc.h \
+  va-clipper.h va-spur.h va-m32r.h va-sh.h va-v850.h va-arc.h iso646.h \
+  va-ppc.h va-c4x.h proto.h stdbool.h ppc-asm.h; do
+  cat > "${SOURCE_ROOT}/gcc/ginclude/${ginclude_header}" <<'EOF'
+/* Stub header generated for host-only ProDG compiler builds. */
+EOF
+done
+
+printf 'timestamp\n' > "${SOURCE_ROOT}/gcc/cstamp-h.in"
+touch "${SOURCE_ROOT}/gcc/cexp.c"
+touch "${SOURCE_ROOT}/gcc/c-gperf.h"
+touch "${SOURCE_ROOT}/gcc/c-parse.c"
+touch "${SOURCE_ROOT}/gcc/cp/parse.c"
+cat > "${SOURCE_ROOT}/gcc/fixinc.sh" <<'EOF'
+#!/usr/bin/env sh
+exit 0
+EOF
+chmod +x "${SOURCE_ROOT}/gcc/fixinc.sh"
 
 shopt -s nullglob
 for patch_file in "${REPO_ROOT}"/*.patch; do

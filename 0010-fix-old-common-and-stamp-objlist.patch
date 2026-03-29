@@ -1,0 +1,11 @@
+--- a/gcc/Makefile.in
++++ b/gcc/Makefile.in
+@@ -878,7 +878,7 @@
+ 
+ # We put a * here because it is never safe to use just `$(OBJS)' here.
+ stamp-objlist: $(OBJS) 
+-	echo " $(OBJS)" | sed -e 's, \([a-z0-9]\), ../\1,g' -e 's/\.o/$(objext)/g' >stamp-objlist
++	echo " $(OBJS)" | sed -e 's, \([A-Za-z0-9]\), ../\1,g' -e 's/\.o/$(objext)/g' >stamp-objlist
+ 
+ gcc.o: gcc.c $(CONFIG_H) system.h getopt.h alloc-pool.h toplev.h \
+    convert.h obstack.h intl.h prefix.h version.h
