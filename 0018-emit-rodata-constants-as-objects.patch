@@ -1,0 +1,145 @@
+--- a/gcc/varasm.c	2026-03-30 19:02:17.718132520 +0200
++++ b/gcc/varasm.c	2026-03-30 19:02:17.720649656 +0200
+@@ -227,6 +227,9 @@
+ static void record_constant_1		(tree);
+ static tree copy_constant		(tree);
+ static void output_constant_def_contents  (tree, int, int);
++static void build_constant_label		(char *, char *, int);
++static void output_constant_label		(char *, int);
++static void output_constant_size		(char *, int, int);
+ static void decode_rtx_const		(enum machine_mode, rtx,
+ 					       struct rtx_const *);
+ static int const_hash_rtx		(enum machine_mode, rtx);
+@@ -1837,6 +1840,56 @@
+    (usually by the addition of an underscore).
+    Many macros in the tm file are defined to call this function.  */
+ 
++/* Build and emit named constant labels.  For ELF targets, use plain
++   LC<number> names so the assembler keeps local readonly constants as
++   symbols, then mark them as STT_OBJECT with a deterministic size.  */
++
++static void
++build_constant_label (label, prefix, labelno)
++     char *label;
++     char *prefix;
++     int labelno;
++{
++#ifdef OBJECT_FORMAT_ELF
++  sprintf (label, "*%s%d", prefix, labelno);
++#else
++  ASM_GENERATE_INTERNAL_LABEL (label, prefix, labelno);
++#endif
++}
++
++static void
++output_constant_label (prefix, labelno)
++     char *prefix;
++     int labelno;
++{
++  char label[256];
++
++  build_constant_label (label, prefix, labelno);
++#ifdef OBJECT_FORMAT_ELF
++  fprintf (asm_out_file, "\t.type\t");
++  assemble_name (asm_out_file, label);
++  fprintf (asm_out_file, ",@object\n");
++#endif
++  assemble_name (asm_out_file, label);
++  fprintf (asm_out_file, ":\n");
++}
++
++static void
++output_constant_size (prefix, labelno, size)
++     char *prefix;
++     int labelno;
++     int size;
++{
++#ifdef OBJECT_FORMAT_ELF
++  char label[256];
++
++  build_constant_label (label, prefix, labelno);
++  fprintf (asm_out_file, "\t.size\t");
++  assemble_name (asm_out_file, label);
++  fprintf (asm_out_file, ",%d\n", size);
++#endif
++}
++
+ void
+ assemble_name (file, name)
+      FILE *file;
+@@ -3137,7 +3190,7 @@
+ 	 future calls to this function to find.  */
+ 	  
+       /* Create a string containing the label name, in LABEL.  */
+-      ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
++      build_constant_label (label, "LC", const_labelno);
+ 
+       desc = record_constant (exp);
+       desc->next = const_hash_table[hash];
+@@ -3148,7 +3201,7 @@
+   else
+     {
+       /* Create a string containing the label name, in LABEL.  */
+-      ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
++      build_constant_label (label, "LC", const_labelno);
+     }
+   
+   /* We have a symbol name; construct the SYMBOL_REF and the MEM.  */
+@@ -3229,7 +3282,7 @@
+      int reloc;
+      int labelno;
+ {
+-  int align;
++  int align, size;
+ 
+   if (IN_NAMED_SECTION (exp))
+     named_section (exp, NULL, reloc);
+@@ -3260,14 +3313,16 @@
+   if (align > BITS_PER_UNIT)
+     ASM_OUTPUT_ALIGN (asm_out_file, floor_log2 (align / BITS_PER_UNIT));
+ 
++  size = (TREE_CODE (exp) == STRING_CST
++	  ? TREE_STRING_LENGTH (exp)
++	  : int_size_in_bytes (TREE_TYPE (exp)));
++
+   /* Output the label itself.  */
+-  ASM_OUTPUT_INTERNAL_LABEL (asm_out_file, "LC", labelno);
++  output_constant_label ("LC", labelno);
+ 
+   /* Output the value of EXP.  */
+-  output_constant (exp,
+-		   (TREE_CODE (exp) == STRING_CST
+-		    ? TREE_STRING_LENGTH (exp)
+-		    : int_size_in_bytes (TREE_TYPE (exp))));
++  output_constant (exp, size);
++  output_constant_size ("LC", labelno, size);
+ 
+ }
+ 
+@@ -3694,7 +3749,7 @@
+       pool_offset += GET_MODE_SIZE (mode);
+ 
+       /* Create a string containing the label name, in LABEL.  */
+-      ASM_GENERATE_INTERNAL_LABEL (label, "LC", const_labelno);
++      build_constant_label (label, "LC", const_labelno);
+ 
+       ++const_labelno;
+ 
+@@ -3848,7 +3903,7 @@
+ 	ASM_OUTPUT_ALIGN (asm_out_file, floor_log2 (pool->align));
+ 
+       /* Output the label.  */
+-      ASM_OUTPUT_INTERNAL_LABEL (asm_out_file, "LC", pool->labelno);
++      output_constant_label ("LC", pool->labelno);
+ 
+       /* Output the value of the constant itself.  */
+       switch (GET_MODE_CLASS (pool->mode))
+@@ -3870,6 +3925,8 @@
+ 	  abort ();
+ 	}
+ 
++      output_constant_size ("LC", pool->labelno, GET_MODE_SIZE (pool->mode));
++
+ #ifdef ASM_OUTPUT_SPECIAL_POOL_ENTRY
+     done: ;
+ #endif
