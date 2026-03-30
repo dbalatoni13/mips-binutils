@@ -129,4 +129,6 @@ for patch_file in "${REPO_ROOT}"/*.patch; do
   patch -N -d "$SOURCE_ROOT" -p1 -i "$patch_file"
 done
 
+python3 "${SCRIPT_DIR}/sync-standalone-cpp.py" "$SOURCE_ROOT"
+
 printf '%s\n' "$SOURCE_ROOT"
