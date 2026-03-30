@@ -17,7 +17,8 @@ INNER_ARCHIVE="${DOWNLOAD_DIR}/NGC_GNU_SRC.zip"
 download_file() {
   local url=$1
   local destination=$2
-  curl -L --fail --retry 5 --retry-delay 2 "$url" -o "$destination"
+  curl -L --fail --retry 5 --retry-delay 2 --retry-all-errors --retry-connrefused \
+    --connect-timeout 20 "$url" -o "$destination"
 }
 
 rm -rf "$SOURCE_PARENT"
