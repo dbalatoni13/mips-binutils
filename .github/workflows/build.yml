@@ -46,7 +46,7 @@ jobs:
       matrix:
         include:
           - name: x86
-            sys: clang32
+            sys: MINGW32
           # - name: arm64
           #   sys: clangarm64
       fail-fast: false
@@ -58,7 +58,7 @@ jobs:
         with:
           msystem: ${{ matrix.sys }}
           install: bison curl diffutils flex gawk gperf make patch perl python unzip
-          pacboy: clang:p
+          pacboy: toolchain:p clang:p
       - name: Build
         shell: msys2 {0}
         run: ./build-windows.sh
