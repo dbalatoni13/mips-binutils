@@ -1,0 +1,12 @@
+diff --git a/gcc/cp/spew.c b/gcc/cp/spew.c
+index c59c424..26cc8d6 100644
+--- a/gcc/cp/spew.c
++++ b/gcc/cp/spew.c
+@@ -218,6 +218,7 @@
+ 	      obstack_blank (&token_obstack, sizeof (struct token));
+ 	      tmp = ((struct token *)obstack_next_free (&token_obstack))-1;
+ 	      tmp->yychar = EMPTY;
++	      memset (&tmp->yylval, 0, sizeof (tmp->yylval));
+ 	      tmp->end_of_file = 0;
+ 	    }
+ 	}
