@@ -6,7 +6,7 @@ WORKDIR="${WORKDIR:-$(pwd)/work}"
 
 export PREFIX
 export WORKDIR
-export HOST_TRIPLE="${HOST_TRIPLE:-x86_64-w64-mingw32}"
+export HOST_TRIPLE="${HOST_TRIPLE:-i686-w64-mingw32}"
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export BUILD_CC="${BUILD_CC:-clang}"

@@ -45,8 +45,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: x86_64
-            sys: clang64
+          - name: x86
+            sys: clang32
           # - name: arm64
           #   sys: clangarm64
       fail-fast: false
