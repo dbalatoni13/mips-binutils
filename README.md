@@ -19,4 +19,4 @@ Use `python3 scripts/patch-rodata-stock.py --list` to see the available profiles
 
 `python3 scripts/patch-rodata-stock.py <profile> <input.exe> [output.exe]`
 
-The patcher recreates the rodata-object behavior from patch `0018`, adding `.type` / `.size` metadata and, for the GameCube frontends, renaming emitted constant labels from `.LC*` to `LC*` so references keep matching.
+The patcher recreates the rodata-object behavior from patch `0018`, adding `.type` / `.size` metadata. It also renames emitted constant labels where needed so the old assemblers keep real object symbols: GameCube frontends use `LC*` instead of `.LC*`, and the PS2 EE frontends use `LC*` instead of `$LC*`.

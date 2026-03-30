@@ -186,6 +186,7 @@ class Manifest:
     mode_size_table: int | None = None
     label_left: int | None = None
     label_right: int | None = None
+    plain_label: bool = False
     push_patches: tuple[PushPatch, ...] = ()
 
 
@@ -325,7 +326,13 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
         "label_fmt": strings_base,
         "type_fmt": strings_base + len(b"%s%s%d:\n\0"),
         "size_fmt": strings_base + len(b"%s%s%d:\n\0") + len(b"\t.type\t%s%s%d,@object\n\0"),
+        "empty": strings_base
+        + len(b"%s%s%d:\n\0")
+        + len(b"\t.type\t%s%s%d,@object\n\0")
+        + len(b"\t.size\t%s%s%d,%d\n\0"),
     }
+    left_addr = string_addrs["empty"] if manifest.plain_label else manifest.label_left
+    right_addr = manifest.label_right
 
     asm = Asm(cave_base)
     helpers: dict[str, int] = {}
@@ -333,15 +340,15 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
     helpers["label"] = asm.here
     asm.prolog()
     asm.push_membp(0x18)
-    asm.push_membp(0x14)
-    asm.push_membp(0x10)
+    asm.push_imm(right_addr)
+    asm.push_imm(left_addr)
     asm.push_imm(string_addrs["type_fmt"])
     asm.push_membp(0x08)
     asm.call(manifest.format_out)
     asm.add_esp(0x14)
     asm.push_membp(0x18)
-    asm.push_membp(0x14)
-    asm.push_membp(0x10)
+    asm.push_imm(right_addr)
+    asm.push_imm(left_addr)
     asm.push_imm(string_addrs["label_fmt"])
     asm.push_membp(0x08)
     asm.call(manifest.format_out)
@@ -357,8 +364,8 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
     asm.raw(b"\x8B\x45\x28")
     asm.push_membp(0x0C)
     asm.push_eax()
-    asm.push_imm(manifest.label_right)
-    asm.push_imm(manifest.label_left)
+    asm.push_imm(right_addr)
+    asm.push_imm(left_addr)
     asm.push_imm(string_addrs["size_fmt"])
     asm.mov_eax_moffs(manifest.asm_out_file_ptr)
     asm.push_eax()
@@ -377,8 +384,8 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
     asm.mov_edx_ptr_edi(0x10)
     asm.push_eax()
     asm.push_edx()
-    asm.push_imm(manifest.label_right)
-    asm.push_imm(manifest.label_left)
+    asm.push_imm(right_addr)
+    asm.push_imm(left_addr)
     asm.push_imm(string_addrs["size_fmt"])
     asm.mov_eax_moffs(manifest.asm_out_file_ptr)
     asm.push_eax()
@@ -397,8 +404,8 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
     asm.mov_edx_ptr_edi(0x10)
     asm.push_eax()
     asm.push_edx()
-    asm.push_imm(manifest.label_right)
-    asm.push_imm(manifest.label_left)
+    asm.push_imm(right_addr)
+    asm.push_imm(left_addr)
     asm.push_imm(string_addrs["size_fmt"])
     asm.mov_eax_moffs(manifest.asm_out_file_ptr)
     asm.push_eax()
@@ -416,6 +423,7 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
         "label_fmt": b"%s%s%d:\n\0",
         "type_fmt": b"\t.type\t%s%s%d,@object\n\0",
         "size_fmt": b"\t.size\t%s%s%d,%d\n\0",
+        "empty": b"\0",
     }
     for name, payload in string_payloads.items():
         start = string_addrs[name] - cave_base
@@ -424,6 +432,7 @@ def build_old_layout(manifest: Manifest, cave_base: int) -> tuple[bytes, dict[st
             code_and_strings.extend(b"\0" * (end - len(code_and_strings)))
         code_and_strings[start:end] = payload
 
+    helpers["left_prefix"] = left_addr
     return bytes(code_and_strings), helpers
 
 
@@ -523,6 +532,7 @@ MANIFESTS: dict[str, Manifest] = {
         pool_int=0x004504B0,
         label_left=0x0059D670,
         label_right=0x0059D66C,
+        plain_label=True,
         call_patches=(
             CallPatch(0x004522DB, 0x00570E18, "label"),
             CallPatch(0x004522F4, 0x00453140, "output_constant"),
@@ -530,6 +540,10 @@ MANIFESTS: dict[str, Manifest] = {
             CallPatch(0x00452DB8, 0x00570E18, "label"),
             CallPatch(0x00452DDE, 0x004504B0, "pool_int"),
             CallPatch(0x00452E22, 0x00450850, "pool_real"),
+        ),
+        push_patches=(
+            PushPatch(0x00450D28, 0x0059D62C, "left_prefix"),
+            PushPatch(0x00450E2E, 0x0059D640, "left_prefix"),
         ),
     ),
     "ps2-ee-991111-cc1plus": Manifest(
@@ -543,6 +557,7 @@ MANIFESTS: dict[str, Manifest] = {
         pool_int=0x004504B0,
         label_left=0x0061E670,
         label_right=0x0061E66C,
+        plain_label=True,
         call_patches=(
             CallPatch(0x004522DB, 0x005F2528, "label"),
             CallPatch(0x004522F4, 0x00453140, "output_constant"),
@@ -550,6 +565,10 @@ MANIFESTS: dict[str, Manifest] = {
             CallPatch(0x00452DB8, 0x005F2528, "label"),
             CallPatch(0x00452DDE, 0x004504B0, "pool_int"),
             CallPatch(0x00452E22, 0x00450850, "pool_real"),
+        ),
+        push_patches=(
+            PushPatch(0x00450D28, 0x0061E62C, "left_prefix"),
+            PushPatch(0x00450E2E, 0x0061E640, "left_prefix"),
         ),
     ),
 }
