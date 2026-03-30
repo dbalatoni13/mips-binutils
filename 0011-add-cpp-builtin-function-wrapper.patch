@@ -1,8 +1,8 @@
 --- a/gcc/cp/decl.c
 +++ b/gcc/cp/decl.c
-@@ -7189,6 +7189,13 @@
- 
- #undef builtin_function
+@@ -6266,6 +6266,13 @@
+   push_overloaded_decl (x, PUSH_GLOBAL);
+ }
  
 +static void
 +pushdecl_1 (decl)
@@ -11,16 +11,25 @@
 +  pushdecl (decl);
 +}
 +
- tree
- builtin_function (name, type, function_code, library_name)
-      const char *name;
-@@ -7196,7 +7203,8 @@
-      enum built_in_function function_code;
-      const char *library_name;
- {
--  return define_function (name, type, function_code, (void (*) PROTO((tree))) pushdecl, library_name);
-+  return define_function (name, type, function_code, pushdecl_1,
-+                          library_name);
+ #ifdef __GNUC__
+ __inline
+ #endif
+@@ -7173,6 +7180,18 @@
+   return decl;
  }
  
++#undef builtin_function
++
++tree
++builtin_function (name, type, function_code, library_name)
++     const char *name;
++     tree type;
++     enum built_in_function function_code;
++     const char *library_name;
++{
++  return define_function (name, type, function_code, pushdecl_1, library_name);
++}
++
  /* When we call finish_struct for an anonymous union, we create
+    default copy constructors and such.  But, an anonymous union
+    shouldn't have such things; this function undoes the damage to the
