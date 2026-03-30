@@ -8,6 +8,9 @@ REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 : "${PRODG_CONFIG_GUESS_URL:=https://raw.githubusercontent.com/chipp/gnu-config/master/config.guess}"
 : "${PRODG_CONFIG_SUB_URL:=https://raw.githubusercontent.com/chipp/gnu-config/master/config.sub}"
 : "${PRODG_INSTALL_SH_URL:=https://raw.githubusercontent.com/autotools-mirror/automake/master/lib/install-sh}"
+# Keep experimental host-fix patches available for bisection, but do not
+# apply them unless explicitly re-enabled.
+: "${DISABLED_PATCHES:=0014-fix-spew-padding-yylval.patch 0015-fix-lex-yylval-reset.patch 0016-fix-decl-merge-byte-copy.patch 0017-fix-grokdeclarator-specbits-copy.patch}"
 
 SOURCE_PARENT=${1:-"${WORKDIR:-${REPO_ROOT}/work}/source"}
 DOWNLOAD_DIR=${2:-"${WORKDIR:-${REPO_ROOT}/work}/downloads"}
@@ -19,6 +22,19 @@ download_file() {
   local destination=$2
   curl -L --fail --retry 5 --retry-delay 2 --retry-all-errors --retry-connrefused \
     --connect-timeout 20 "$url" -o "$destination"
+}
+
+patch_is_disabled() {
+  local patch_name=$1
+  local disabled
+
+  for disabled in ${DISABLED_PATCHES//,/ }; do
+    if [[ "$disabled" == "$patch_name" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 rm -rf "$SOURCE_PARENT"
@@ -129,6 +145,9 @@ python3 "${SCRIPT_DIR}/sync-standalone-cpp.py" "$SOURCE_ROOT"
 
 shopt -s nullglob
 for patch_file in "${REPO_ROOT}"/*.patch; do
+  if patch_is_disabled "$(basename "$patch_file")"; then
+    continue
+  fi
   patch -N -d "$SOURCE_ROOT" -p1 -i "$patch_file"
 done
 
