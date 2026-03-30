@@ -11,8 +11,8 @@ export CC="${CC:-gcc}"
 export CXX="${CXX:-g++}"
 export BUILD_CC="${BUILD_CC:-gcc}"
 export BUILD_CXX="${BUILD_CXX:-g++}"
-export CFLAGS="${CFLAGS:--O2 -std=gnu89 -w -fcommon}"
-export CXXFLAGS="${CXXFLAGS:--O2 -std=gnu++98 -w -fcommon}"
+export CFLAGS="${CFLAGS:--O2 -fno-strict-aliasing -std=gnu89 -w -fcommon}"
+export CXXFLAGS="${CXXFLAGS:--O2 -fno-strict-aliasing -std=gnu++98 -w -fcommon}"
 
 ./scripts/build-prodg.sh
 
