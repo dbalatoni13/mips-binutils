@@ -1,0 +1,73 @@
+--- a/gcc/cp/decl.c	2026-03-30 18:15:45.065993384 +0200
++++ b/gcc/cp/decl.c	2026-03-30 18:15:45.067640340 +0200
+@@ -3148,6 +3148,32 @@
+    If safely possible, alter OLDDECL to look like NEWDECL, and return 1.
+    Otherwise, return 0.  */
+ 
++/* duplicate_decls clobbers declaration nodes that live in obstack-managed
++   storage.  Keep these copies as explicit byte moves instead of relying on
++   the host compiler's bcopy expansion; Windows x86 host -O3 was observed to
++   miscompile this path in cc1plus.  */
++
++static void
++copy_decl_bytes (dst, src, size)
++     char *dst;
++     const char *src;
++     size_t size;
++{
++  if (dst == src || size == 0)
++    return;
++
++  if (dst < src || dst >= src + size)
++    while (size-- != 0)
++      *dst++ = *src++;
++  else
++    {
++      dst += size;
++      src += size;
++      while (size-- != 0)
++        *--dst = *--src;
++    }
++}
++
+ int
+ duplicate_decls (newdecl, olddecl)
+      tree newdecl, olddecl;
+@@ -3730,9 +3756,9 @@
+ 
+       function_size = sizeof (struct tree_decl);
+ 
+-      bcopy ((char *) newdecl + sizeof (struct tree_common),
+-	     (char *) olddecl + sizeof (struct tree_common),
+-	     function_size - sizeof (struct tree_common));
++      copy_decl_bytes ((char *) olddecl + sizeof (struct tree_common),
++		       (const char *) newdecl + sizeof (struct tree_common),
++		       function_size - sizeof (struct tree_common));
+ 
+       /* Can we safely free the storage used by newdecl?  */
+ 
+@@ -3780,7 +3806,8 @@
+ 	{
+ 	  DECL_MAIN_VARIANT (newdecl) = olddecl;
+ 	  DECL_LANG_SPECIFIC (olddecl) = ol;
+-	  bcopy ((char *)nl, (char *)ol, sizeof (struct lang_decl));
++	  copy_decl_bytes ((char *) ol, (const char *) nl,
++			   sizeof (struct lang_decl));
+ 
+ 	  obstack_free (&permanent_obstack, newdecl);
+ 	}
+@@ -3806,10 +3833,10 @@
+     }
+   else
+     {
+-      bcopy ((char *) newdecl + sizeof (struct tree_common),
+-	     (char *) olddecl + sizeof (struct tree_common),
+-	     sizeof (struct tree_decl) - sizeof (struct tree_common)
+-	     + tree_code_length [(int)TREE_CODE (newdecl)] * sizeof (char *));
++      copy_decl_bytes ((char *) olddecl + sizeof (struct tree_common),
++		       (const char *) newdecl + sizeof (struct tree_common),
++		       sizeof (struct tree_decl) - sizeof (struct tree_common)
++		       + tree_code_length [(int)TREE_CODE (newdecl)] * sizeof (char *));
+     }
+ 
+   DECL_UID (olddecl) = olddecl_uid;
