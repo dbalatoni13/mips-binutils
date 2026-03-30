@@ -1,0 +1,15 @@
+diff --git a/gcc/cp/lex.c b/gcc/cp/lex.c
+index 4712988..75dc508 100644
+--- a/gcc/cp/lex.c
++++ b/gcc/cp/lex.c
+@@ -3285,6 +3285,10 @@ real_yylex ()
+   int dollar_seen = 0;
+   int i;
+ 
++  /* spew.c snapshots yylval for every buffered token, including punctuation
++     and control tokens that do not assign a semantic value of their own.  */
++  memset (&yylval, 0, sizeof (yylval));
++
+   if (nextchar >= 0)
+     c = nextchar, nextchar = -1;
+   else
