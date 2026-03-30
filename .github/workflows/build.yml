@@ -58,7 +58,7 @@ jobs:
         with:
           msystem: ${{ matrix.sys }}
           install: bison curl diffutils flex gawk gperf make patch perl python unzip
-          pacboy: toolchain:p clang:p
+          pacboy: toolchain:p
       - name: Build
         shell: msys2 {0}
         run: ./build-windows.sh
