@@ -1,0 +1,11 @@
+--- a/gcc/cp/decl.c
++++ b/gcc/cp/decl.c
+@@ -10600,7 +10600,7 @@
+  		      }
+ 		    {
+ 		      RID_BIT_TYPE tmp_bits;
+-		      bcopy ((void*)&specbits, (void*)&tmp_bits, sizeof (RID_BIT_TYPE));
++		      tmp_bits = specbits;
+ 		      RIDBIT_RESET (RID_INLINE, tmp_bits);
+ 		      RIDBIT_RESET (RID_STATIC, tmp_bits);
+ 		      if (RIDBIT_ANY_SET (tmp_bits))
