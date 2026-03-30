@@ -5,9 +5,9 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 
 : "${PRODG_SOURCE_URL:=https://archive.org/download/GameCubeSDK/SNSystems%20ProDG%20for%20GameCube%20%2B%20Sources%20%2B.NET%20and%20more.rar/SNSystems%20ProDG%20for%20GameCube%20%2B%20Sources%20%2B%20.NET%20and%20more%2FProDGforNGCv393_Source_Code.zip}"
-: "${PRODG_CONFIG_GUESS_URL:=https://git.savannah.gnu.org/cgit/config.git/plain/config.guess}"
-: "${PRODG_CONFIG_SUB_URL:=https://git.savannah.gnu.org/cgit/config.git/plain/config.sub}"
-: "${PRODG_INSTALL_SH_URL:=https://git.savannah.gnu.org/cgit/automake.git/plain/lib/install-sh}"
+: "${PRODG_CONFIG_GUESS_URL:=https://raw.githubusercontent.com/chipp/gnu-config/master/config.guess}"
+: "${PRODG_CONFIG_SUB_URL:=https://raw.githubusercontent.com/chipp/gnu-config/master/config.sub}"
+: "${PRODG_INSTALL_SH_URL:=https://raw.githubusercontent.com/autotools-mirror/automake/master/lib/install-sh}"
 
 SOURCE_PARENT=${1:-"${WORKDIR:-${REPO_ROOT}/work}/source"}
 DOWNLOAD_DIR=${2:-"${WORKDIR:-${REPO_ROOT}/work}/downloads"}
