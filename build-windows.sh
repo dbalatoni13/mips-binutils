@@ -15,4 +15,9 @@ export CFLAGS="${CFLAGS:--std=gnu89 -w -fcommon}"
 export CXXFLAGS="${CXXFLAGS:--std=gnu++98 -w -fcommon}"
 
 ./scripts/build-prodg.sh
-python3 ./scripts/patch-wibo-cpp.py "${PREFIX}/lib/gcc-lib/Dolphin/cpp.exe"
+
+case "${HOST_TRIPLE}" in
+  i686-*-mingw*|i686-*-msys*)
+    python3 ./scripts/patch-wibo-cpp.py "${PREFIX}/lib/gcc-lib/Dolphin/cpp.exe"
+    ;;
+esac

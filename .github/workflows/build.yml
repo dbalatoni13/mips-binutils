@@ -47,6 +47,10 @@ jobs:
         include:
           - name: x86
             sys: MINGW32
+            host_triple: i686-w64-mingw32
+          - name: x64
+            sys: MINGW64
+            host_triple: x86_64-w64-mingw32
           # - name: arm64
           #   sys: clangarm64
       fail-fast: false
@@ -61,6 +65,8 @@ jobs:
           pacboy: toolchain:p
       - name: Build
         shell: msys2 {0}
+        env:
+          HOST_TRIPLE: ${{ matrix.host_triple }}
         run: ./build-windows.sh
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
