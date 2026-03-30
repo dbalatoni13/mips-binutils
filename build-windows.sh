@@ -11,8 +11,20 @@ export CC="${CC:-gcc}"
 export CXX="${CXX:-g++}"
 export BUILD_CC="${BUILD_CC:-gcc}"
 export BUILD_CXX="${BUILD_CXX:-g++}"
-export CFLAGS="${CFLAGS:--O2 -fno-strict-aliasing -std=gnu89 -w -fcommon}"
-export CXXFLAGS="${CXXFLAGS:--O2 -fno-strict-aliasing -std=gnu++98 -w -fcommon}"
+
+case "${HOST_TRIPLE}" in
+  i686-*-mingw*|i686-*-msys*)
+    default_cflags="-O0 -std=gnu89 -w -fcommon"
+    default_cxxflags="-O0 -std=gnu++98 -w -fcommon"
+    ;;
+  *)
+    default_cflags="-O2 -fno-strict-aliasing -std=gnu89 -w -fcommon"
+    default_cxxflags="-O2 -fno-strict-aliasing -std=gnu++98 -w -fcommon"
+    ;;
+esac
+
+export CFLAGS="${CFLAGS:-$default_cflags}"
+export CXXFLAGS="${CXXFLAGS:-$default_cxxflags}"
 
 ./scripts/build-prodg.sh
 
