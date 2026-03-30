@@ -5,5 +5,5 @@ The Linux artifact is built in a glibc-based container so the produced host tool
 The installed `CPP` binary is built from ProDG's standalone `NGC/CPP` source set, then wired into the configured GCC build so its preprocessor behavior stays closer to the original ProDG toolchain.
 
 Windows artifacts are built for both 32-bit and 64-bit MinGW hosts.
-The 32-bit host compiler now defaults to `-O3`, with `cp/decl.c` forced to `-O1` to avoid the `cc1plus.exe` ICE reproduced by `nfsmw`.
+The 32-bit host compiler now defaults to full `-O3`; `gcc/cp/decl.c` carries a source-level fix for the `cc1plus.exe` ICE reproduced by `nfsmw`.
 The 32-bit artifact is intended for wrapper-based setups such as `wibo`, and its `cpp.exe` binary is patched after build to avoid the unsupported `AreFileApisANSI` import path.
