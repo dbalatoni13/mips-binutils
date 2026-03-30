@@ -6,6 +6,20 @@ on:
       - '*.md'
       - 'LICENSE*'
   pull_request:
+  workflow_dispatch:
+    inputs:
+      windows_x86_base_opt_level:
+        description: Base optimization level for the Windows x86 host compiler build
+        required: false
+        default: O0
+      windows_x86_host_o1_sources:
+        description: Comma or whitespace separated host frontend sources to force to -O1 (for example cp/lex.c cp/spew.c)
+        required: false
+        default: ''
+      windows_x86_host_o0_sources:
+        description: Comma or whitespace separated host frontend sources to force to -O0
+        required: false
+        default: ''
 
 jobs:
   build-linux:
@@ -67,6 +81,9 @@ jobs:
         shell: msys2 {0}
         env:
           HOST_TRIPLE: ${{ matrix.host_triple }}
+          WINDOWS_X86_BASE_OPT_LEVEL: ${{ matrix.name == 'x86' && github.event_name == 'workflow_dispatch' && github.event.inputs.windows_x86_base_opt_level || '' }}
+          HOST_O1_SOURCES: ${{ matrix.name == 'x86' && github.event_name == 'workflow_dispatch' && github.event.inputs.windows_x86_host_o1_sources || '' }}
+          HOST_O0_SOURCES: ${{ matrix.name == 'x86' && github.event_name == 'workflow_dispatch' && github.event.inputs.windows_x86_host_o0_sources || '' }}
         run: ./build-windows.sh
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

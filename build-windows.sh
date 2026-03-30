@@ -14,8 +14,10 @@ export BUILD_CXX="${BUILD_CXX:-g++}"
 
 case "${HOST_TRIPLE}" in
   i686-*-mingw*|i686-*-msys*)
-    default_cflags="-O0 -std=gnu89 -w -fcommon"
-    default_cxxflags="-O0 -std=gnu++98 -w -fcommon"
+    host_opt_level="${WINDOWS_X86_BASE_OPT_LEVEL:-O0}"
+    host_opt_level="${host_opt_level#-}"
+    default_cflags="-${host_opt_level} -std=gnu89 -w -fcommon"
+    default_cxxflags="-${host_opt_level} -std=gnu++98 -w -fcommon"
     ;;
   *)
     default_cflags="-O2 -fno-strict-aliasing -std=gnu89 -w -fcommon"

@@ -41,6 +41,78 @@ else
   MAKE_JOBS=${MAKE_JOBS:-1}
 fi
 
+apply_host_source_opt_overrides() {
+  local gcc_makefile=$1
+  local cp_makefile=$2
+
+  if [[ -z "${HOST_O0_SOURCES:-}" && -z "${HOST_O1_SOURCES:-}" ]]; then
+    return
+  fi
+
+  python3 - "$gcc_makefile" "$cp_makefile" <<'PY'
+from pathlib import Path
+import os
+import re
+import sys
+
+gcc_makefile = Path(sys.argv[1])
+cp_makefile = Path(sys.argv[2])
+
+begin = "# BEGIN host source opt overrides"
+end = "# END host source opt overrides"
+opt_flags = ("-O0", "-O1", "-O2", "-O3", "-Og", "-Os")
+entries = {}
+
+def parse_sources(raw):
+    for item in re.split(r"[\s,]+", raw.strip()):
+        if item:
+            yield item
+
+def object_name(source):
+    name = Path(source).name
+    for suffix in (".c", ".cc", ".cpp", ".cxx", ".C", ".o"):
+        if name.endswith(suffix):
+            return name[: -len(suffix)] + ".o" if suffix != ".o" else name
+    return name + ".o"
+
+for env_name, opt_flag in (("HOST_O0_SOURCES", "-O0"), ("HOST_O1_SOURCES", "-O1")):
+    for source in parse_sources(os.environ.get(env_name, "")):
+        makefile = cp_makefile if source.startswith("cp/") else gcc_makefile
+        entries[(makefile, object_name(source))] = (source, opt_flag)
+
+for makefile in (gcc_makefile, cp_makefile):
+    if not makefile.exists():
+        continue
+
+    text = makefile.read_text()
+    if begin in text and end in text:
+        start = text.index(begin)
+        finish = text.index(end, start) + len(end)
+        text = text[:start].rstrip() + "\n"
+
+    lines = []
+    for (path, obj), (source, opt_flag) in sorted(entries.items()):
+        if path != makefile:
+            continue
+        filter_expr = " ".join(opt_flags)
+        lines.append(f"# {source}")
+        lines.append(
+            f"{obj}: ALL_CFLAGS := $(filter-out {filter_expr},$(ALL_CFLAGS)) {opt_flag}"
+        )
+
+    if not lines:
+        makefile.write_text(text)
+        continue
+
+    block = "\n".join([begin, *lines, end])
+    makefile.write_text(text.rstrip() + "\n\n" + block + "\n")
+PY
+
+  echo "Applied host source optimization overrides:"
+  [[ -n "${HOST_O0_SOURCES:-}" ]] && echo "  -O0: ${HOST_O0_SOURCES}"
+  [[ -n "${HOST_O1_SOURCES:-}" ]] && echo "  -O1: ${HOST_O1_SOURCES}"
+}
+
 "${SCRIPT_DIR}/prepare-prodg-source.sh" "${WORKDIR}/source" "${WORKDIR}/downloads" >/dev/null
 
 SOURCE_ROOT="${WORKDIR}/source/NGC_GNU_SRC/NGC"
@@ -100,6 +172,8 @@ env \
   CXXFLAGS="$CXXFLAGS" \
   LDFLAGS="$LDFLAGS" \
   ./configure "${configure_args[@]}"
+
+apply_host_source_opt_overrides "${SOURCE_ROOT}/gcc/Makefile" "${SOURCE_ROOT}/gcc/cp/Makefile"
 
 build_targets=(
   "cc1${exeext}"
