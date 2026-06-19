@@ -2,41 +2,53 @@
 ARG ALPINE_VERSION=3.19.1
 FROM alpine:${ALPINE_VERSION} AS build
 
-# Install dependencies
-RUN apk add --no-cache binutils file gcc make musl-dev patch
+ARG GCC_VERSION=8.5.0
+ARG TARGET=powerpc-eabi
 
-# Install zig
-ARG ZIG_VERSION=0.11.0
-RUN mkdir /zig && \
-    wget -qO- "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-`uname -m`-${ZIG_VERSION}.tar.xz" | \
-    tar -xJ -C /zig --strip-components=1
-ENV PATH="/zig:$PATH"
+RUN apk add --no-cache \
+    bash \
+    bison \
+    build-base \
+    flex \
+    gmp-dev \
+    mpc1-dev \
+    mpfr-dev \
+    patch \
+    texinfo \
+    wget \
+    xz
 
-# Download binutils
-ARG BINUTILS_VERSION=2.45
-RUN wget -q https://mirror.netcologne.de/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz
+RUN wget -q "https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz"
 
-# Build host binutils
-ARG GNU_TRIPLE
-RUN mkdir /binutils-host && \
-    tar -xf /binutils-${BINUTILS_VERSION}.tar.xz -C /binutils-host --strip-components=1 && \
-    cd /binutils-host && \
-    ./configure --target=${GNU_TRIPLE} --prefix=/usr/local \
-    --disable-nls --disable-gprofng --disable-ld --disable-gold && \
-    make -j$(nproc) && \
-    make install-strip
+COPY gcc-*.patch /
 
-# Build target binutils
-ARG ZIG_TRIPLE
-RUN mkdir /binutils && \
-    tar -xf /binutils-${BINUTILS_VERSION}.tar.xz -C /binutils --strip-components=1 && \
-    cd /binutils && \
-    CC="zig cc -target ${ZIG_TRIPLE}" \
-    ./configure --host=${GNU_TRIPLE} --target=mips-linux-gnu --prefix=/target \
-    --disable-nls --disable-gprof --without-zstd && \
-    make -j$(nproc) && \
-    make install-strip
+RUN mkdir /src-gcc && \
+    tar -xf "/gcc-${GCC_VERSION}.tar.xz" -C /src-gcc --strip-components=1 && \
+    cd /src-gcc && \
+    for file in /gcc-*.patch; do patch -N -p1 -i "${file}"; done && \
+    mkdir /build-gcc && \
+    cd /build-gcc && \
+    /src-gcc/configure \
+        --target="${TARGET}" \
+        --prefix=/target \
+        --with-cpu=750 \
+        --with-tune=750 \
+        --without-headers \
+        --enable-languages=c,c++ \
+        --disable-bootstrap \
+        --disable-assembly \
+        --disable-libatomic \
+        --disable-libgomp \
+        --disable-libquadmath \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-multilib \
+        --disable-nls \
+        --disable-shared \
+        --disable-threads && \
+    make -j"$(nproc)" all-gcc && \
+    make install-strip-gcc
 
-# Export binary (usage: docker build --target export --output build .)
+# Export toolchain (usage: docker build --target export --output build .)
 FROM scratch AS export
 COPY --from=build /target .
