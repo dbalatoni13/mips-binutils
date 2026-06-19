@@ -1,0 +1,15 @@
+diff --git a/gcc/prefix.c b/gcc/prefix.c
+index 85e5a2c3f0f..e01fd247aaa 100644
+--- a/gcc/prefix.c
++++ b/gcc/prefix.c
+@@ -70,7 +70,10 @@ Boston, MA 02110-1301, USA.  */
+ #include "system.h"
+ #include "coretypes.h"
+ #if defined(_WIN32) && defined(ENABLE_WIN32_REGISTRY)
++#undef abort
++#define WIN32_LEAN_AND_MEAN
+ #include <windows.h>
++#define abort() fancy_abort (__FILE__, __LINE__, __FUNCTION__)
+ #endif
+ #include "prefix.h"
+ #include "common/common-target.h"
