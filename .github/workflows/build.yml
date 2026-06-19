@@ -76,6 +76,13 @@ jobs:
       - name: Build
         shell: msys2 {0}
         run: ./build-windows.sh
+      - name: Check runtime dependencies
+        shell: msys2 {0}
+        run: |
+          if objdump -p build/bin/*.exe | grep -Ei 'DLL Name: (libiconv|libgcc|libstdc\+\+|libwinpthread)-'; then
+            echo "Unexpected MinGW runtime DLL dependency" >&2
+            exit 1
+          fi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
