@@ -1,0 +1,109 @@
+--- a/gcc/system.h
++++ b/gcc/system.h
+@@ -194,28 +194,6 @@
+ #undef fread_unlocked
+ #undef fwrite_unlocked
+ 
+-/* Include <string> before "safe-ctype.h" to avoid GCC poisoning
+-   the ctype macros through safe-ctype.h */
+-
+-#ifdef __cplusplus
+-#ifdef INCLUDE_STRING
+-# include <string>
+-#endif
+-#endif
+-
+-/* There are an extraordinary number of issues with <ctype.h>.
+-   The last straw is that it varies with the locale.  Use libiberty's
+-   replacement instead.  */
+-#include "safe-ctype.h"
+-
+-#include <sys/types.h>
+-
+-#include <errno.h>
+-
+-#if !defined (errno) && defined (HAVE_DECL_ERRNO) && !HAVE_DECL_ERRNO
+-extern int errno;
+-#endif
+-
+ #ifdef __cplusplus
+ #if defined (INCLUDE_ALGORITHM) || !defined (HAVE_SWAP_IN_UTILITY)
+ # include <algorithm>
+@@ -229,6 +207,9 @@
+ #ifdef INCLUDE_SET
+ # include <set>
+ #endif
++#ifdef INCLUDE_STRING
++# include <string>
++#endif
+ #ifdef INCLUDE_VECTOR
+ # include <vector>
+ #endif
+@@ -237,6 +218,19 @@
+ # include <utility>
+ #endif
+ 
++/* There are an extraordinary number of issues with <ctype.h>.
++   The last straw is that it varies with the locale.  Use libiberty's
++   replacement instead.  */
++#include "safe-ctype.h"
++
++#include <sys/types.h>
++
++#include <errno.h>
++
++#if !defined (errno) && defined (HAVE_DECL_ERRNO) && !HAVE_DECL_ERRNO
++extern int errno;
++#endif
++
+ /* Some of glibc's string inlines cause warnings.  Plus we'd rather
+    rely on (and therefore test) GCC's string builtins.  */
+ #define __NO_STRING_INLINES
+--- a/gcc/diagnostic-color.c
++++ b/gcc/diagnostic-color.c
+@@ -21,7 +21,9 @@
+ #include "diagnostic-color.h"
+ 
+ #ifdef __MINGW32__
++#undef abort
+ #  include <windows.h>
++#define abort() fancy_abort (__FILE__, __LINE__, __FUNCTION__)
+ #endif
+ 
+ #include "color-macros.h"
+--- a/gcc/pretty-print.c
++++ b/gcc/pretty-print.c
+@@ -40,7 +40,9 @@
+ 
+ #include <io.h>
+ #define WIN32_LEAN_AND_MEAN 1
++#undef abort
+ #include <windows.h>
++#define abort() fancy_abort (__FILE__, __LINE__, __FUNCTION__)
+ 
+ /* Write all bytes in [s,s+n) into the specified stream.
+    Errors are ignored.  */
+--- a/gcc/config/i386/host-mingw32.c
++++ b/gcc/config/i386/host-mingw32.c
+@@ -28,7 +28,9 @@
+ 
+ 
+ #define WIN32_LEAN_AND_MEAN  /* Not so important if we have windows.h.gch.  */
++#undef abort
+ #include <windows.h>
++#define abort() fancy_abort (__FILE__, __LINE__, __FUNCTION__)
+ #include <stdlib.h>
+ 
+ static void * mingw32_gt_pch_get_address (size_t, int);
+--- a/gcc/plugin.c
++++ b/gcc/plugin.c
+@@ -41,7 +41,9 @@
+ #ifndef NOMINMAX
+ #define NOMINMAX
+ #endif
++#undef abort
+ #include <windows.h>
++#define abort() fancy_abort (__FILE__, __LINE__, __FUNCTION__)
+ #endif
+ 
+ #define GCC_PLUGIN_STRINGIFY0(X) #X
