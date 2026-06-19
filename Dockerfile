@@ -9,14 +9,17 @@ RUN apk add --no-cache \
     bash \
     bison \
     build-base \
+    file \
     flex \
     gmp-dev \
     mpc1-dev \
     mpfr-dev \
+    musl-dev \
     patch \
     texinfo \
     wget \
-    xz
+    xz \
+    zlib-static
 
 RUN wget -q "https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz"
 
@@ -28,16 +31,18 @@ RUN mkdir /src-gcc && \
     for file in /gcc-*.patch; do patch -N -p1 -i "${file}"; done && \
     mkdir /build-gcc && \
     cd /build-gcc && \
-    /src-gcc/configure \
+    LDFLAGS="-static" /src-gcc/configure \
         --target="${TARGET}" \
         --prefix=/target \
         --with-cpu=750 \
         --with-tune=750 \
+        --without-isl \
         --without-headers \
         --enable-languages=c,c++ \
         --disable-bootstrap \
-        --disable-assembly \
+        --disable-host-shared \
         --disable-libatomic \
+        --disable-libcc1 \
         --disable-libgomp \
         --disable-libquadmath \
         --disable-libssp \
@@ -46,8 +51,11 @@ RUN mkdir /src-gcc && \
         --disable-nls \
         --disable-shared \
         --disable-threads && \
-    make -j"$(nproc)" all-gcc && \
-    make install-strip-gcc
+    make -j"$(nproc)" LDFLAGS="-static" all-gcc && \
+    make install-strip-gcc && \
+    /target/bin/${TARGET}-gcc --version && \
+    /target/bin/${TARGET}-gcc -mpaired -Q --help=target | grep -q 'mpaired.*enabled' && \
+    ! find /target -type f -perm -111 -exec file {} + | grep -q 'dynamically linked'
 
 # Export toolchain (usage: docker build --target export --output build .)
 FROM scratch AS export

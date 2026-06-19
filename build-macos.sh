@@ -3,5 +3,6 @@
 export CFLAGS="-arch arm64 -arch x86_64 -mmacosx-version-min=11.0"
 export CXXFLAGS="${CFLAGS}"
 export LDFLAGS="-arch arm64 -arch x86_64 -mmacosx-version-min=11.0"
+export GCC_CONFIGURE_ARGS="--disable-assembly"
 
 exec ./scripts/build-toolchain.sh

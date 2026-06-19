@@ -11,6 +11,6 @@ producing object files or executables.
 
 The CI matrix produces:
 
-- Linux: x86_64, i686, armv7l, and aarch64
+- Linux: statically linked musl binaries for x86_64, i686, armv7l, and aarch64
 - macOS: universal x86_64/arm64
 - Windows: x86_64

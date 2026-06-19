@@ -5,6 +5,7 @@ TARGET="${TARGET:-powerpc-eabi}"
 ROOT="$(pwd)"
 PREFIX="${PREFIX:-${ROOT}/build}"
 JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu)}"
+read -r -a CONFIGURE_ARGS <<< "${GCC_CONFIGURE_ARGS:-}"
 
 download()
 {
@@ -60,11 +61,13 @@ find source-gcc -name config.sub -exec cp config.sub {} \;
     --prefix="${PREFIX}" \
     --with-cpu=750 \
     --with-tune=750 \
+    --without-isl \
     --without-headers \
     --enable-languages=c,c++ \
     --disable-bootstrap \
-    --disable-assembly \
+    --disable-host-shared \
     --disable-libatomic \
+    --disable-libcc1 \
     --disable-libgomp \
     --disable-libquadmath \
     --disable-libssp \
@@ -72,7 +75,8 @@ find source-gcc -name config.sub -exec cp config.sub {} \;
     --disable-multilib \
     --disable-nls \
     --disable-shared \
-    --disable-threads
+    --disable-threads \
+    "${CONFIGURE_ARGS[@]}"
   make -j"${JOBS}" all-gcc
   make install-strip-gcc
 )
